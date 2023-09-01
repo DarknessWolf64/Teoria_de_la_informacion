@@ -7,15 +7,32 @@
 #include <time.h>
 #include <typeinfo>
 #include <bitset>
+#include <utility>
 
 using namespace std;
 
-//prototipos
+//estructura para enviar los archivos
+struct datos {
+    int cabeza;
+    pair<int, bitset<8>> par;
+    struct datos* sig;
+};
+
+struct datos *raiz = NULL;
+struct datos *fondo = NULL;
+
+
+//prototipos para el diagrama
 void fuente(string cadena);
 void trasnmisor(string cadena);
 void canal(const pair<int, bitset<8>>& par, int rnum);
 void receptor(string cadena);
 void destino(string cadena);
+
+//prototipos para el almacenamiento de los datos
+int vacia();
+void insertar(const pair<int, bitset<8>>& par, int cabeza);
+void extraer(pair<int, bitset<8>>& par, int& cabeza);
 
 int main()
 {
@@ -39,6 +56,7 @@ void trasnmisor(string cadena){
     string palabra;
     char letras[50];
     pair<int, bitset<8>> pares[tam];
+    bool envio = false;
 
     for(int i=0;i<tam;i++){
         for(int j=0;j<26;j++){
@@ -66,6 +84,15 @@ void trasnmisor(string cadena){
 
     //implementar una lista que solo saque las bits y enviarlos al receptor y hacer el cambio de bits a letras y juntarlos en una cadena para su desciframiento.
     
+    cout << "\nExtrayendo elementos:" << endl;
+    while (!vacia()) {
+        pair<int, bitset<8>> extraccion_par;
+        int extraccion_cabeza;
+        extraer(extraccion_par, extraccion_cabeza);
+
+        cout << "Cabeza: " << extraccion_cabeza << ", Par contenido: {" << extraccion_par.second.to_string() << "}" << endl;
+    }
+
     string cifrado = palabra;
     cout << "\n" << cifrado << endl;
 }
@@ -87,6 +114,7 @@ void canal(const pair<int, bitset<8>>& par, int num){
                 velocidad = velocidad + 1;
             }
             cout << "\nLa velocidad a la que se mando el paquete fue de " << velocidad << " segundos." << endl;
+            insertar(par,par.first);
         }
         else if(rnum == 2){
             cout << "\nEl paquete fue enviado por UTP el cual es: [" << par.first << "]-[" << par.second << "] con poco ruido" << endl;
@@ -94,6 +122,7 @@ void canal(const pair<int, bitset<8>>& par, int num){
                 velocidad = velocidad + 1;
             }
             cout << "\nLa velocidad a la que se mando el paquete fue de " << velocidad << " segundos." << endl;
+            insertar(par,par.first);
         }
         else if(rnum == 3){
             cout << "\nEl paquete fue enviado por UTP el cual es: [" << par.first << "]-[" << par.second << "] con bastante ruido" << endl;
@@ -101,6 +130,7 @@ void canal(const pair<int, bitset<8>>& par, int num){
                 velocidad = velocidad + 1;
             }
             cout << "\nLa velocidad a la que se mando el paquete fue de " << velocidad << " segundos." << endl;
+            insertar(par,par.first);
         }
         break;
 
@@ -111,6 +141,7 @@ void canal(const pair<int, bitset<8>>& par, int num){
                 velocidad = velocidad + 1;
             }
             cout << "\nLa velocidad a la que se mando el paquete fue de " << velocidad << " segundos." << endl;
+            insertar(par,par.first);
         }
         else if(rnum == 2){
             cout << "\nEl paquete fue enviado por FTP el cual es: [" << par.first << "]-[" << par.second << "] con poco ruido" << endl;
@@ -118,6 +149,7 @@ void canal(const pair<int, bitset<8>>& par, int num){
                 velocidad = velocidad + 1;
             }
             cout << "\nLa velocidad a la que se mando el paquete fue de " << velocidad << " segundos." << endl;
+            insertar(par,par.first);
         }
         else if(rnum == 3){
             cout << "\nEl paquete fue enviado por FTP el cual es: [" << par.first << "]-[" << par.second << "] con bastante ruido" << endl;
@@ -125,6 +157,7 @@ void canal(const pair<int, bitset<8>>& par, int num){
                 velocidad = velocidad + 1;
             }
             cout << "\nLa velocidad a la que se mando el paquete fue de " << velocidad << " segundos." << endl;
+            insertar(par,par.first);
         }
         break;
 
@@ -135,6 +168,7 @@ void canal(const pair<int, bitset<8>>& par, int num){
                 velocidad = velocidad + 1;
             }
             cout << "\nLa velocidad a la que se mando el paquete fue de " << velocidad << " segundos." << endl;
+            insertar(par,par.first);
         }
         else if(rnum == 2){
             cout << "\nEl paquete fue enviado por STP el cual es: [" << par.first << "]-[" << par.second << "] con poco ruido" << endl;
@@ -142,6 +176,7 @@ void canal(const pair<int, bitset<8>>& par, int num){
                 velocidad = velocidad + 1;
             }
             cout << "\nLa velocidad a la que se mando el paquete fue de " << velocidad << " segundos." << endl;
+            insertar(par,par.first);
         }
         else if(rnum == 3){
             cout << "\nEl paquete fue enviado por STP el cual es: [" << par.first << "]-[" << par.second << "] con bastante ruido" << endl;
@@ -149,6 +184,7 @@ void canal(const pair<int, bitset<8>>& par, int num){
                 velocidad = velocidad + 1;
             }
             cout << "\nLa velocidad a la que se mando el paquete fue de " << velocidad << " segundos." << endl;
+            insertar(par,par.first);
         }
         break;
 
@@ -159,6 +195,7 @@ void canal(const pair<int, bitset<8>>& par, int num){
                 velocidad = velocidad + 1;
             }
             cout << "\nLa velocidad a la que se mando el paquete fue de " << velocidad << " segundos." << endl;
+            insertar(par,par.first);
         }
         else if(rnum == 2){
             cout << "\nEl paquete fue enviado por cable coaxial el cual es: [" << par.first << "]-[" << par.second << "] con poco ruido" << endl;
@@ -166,6 +203,7 @@ void canal(const pair<int, bitset<8>>& par, int num){
                 velocidad = velocidad + 1;
             }
             cout << "\nLa velocidad a la que se mando el paquete fue de " << velocidad << " segundos." << endl;
+            insertar(par,par.first);
         }
         else if(rnum == 3){
             cout << "\nEl paquete fue enviado por cable coaxial el cual es: [" << par.first << "]-[" << par.second << "] con bastante ruido" << endl;
@@ -173,6 +211,7 @@ void canal(const pair<int, bitset<8>>& par, int num){
                 velocidad = velocidad + 1;
             }
             cout << "\nLa velocidad a la que se mando el paquete fue de " << velocidad << " segundos." << endl;
+            insertar(par,par.first);
         }
         break;
 
@@ -183,6 +222,7 @@ void canal(const pair<int, bitset<8>>& par, int num){
                 velocidad = velocidad + 1;
             }
             cout << "\nLa velocidad a la que se mando el paquete fue de " << velocidad << " segundos." << endl;
+            insertar(par,par.first);
         }
         else if(rnum == 2){
             cout << "\nEl paquete fue enviado por fibra optica el cual es: [" << par.first << "]-[" << par.second << "] con poco ruido" << endl;
@@ -190,6 +230,7 @@ void canal(const pair<int, bitset<8>>& par, int num){
                 velocidad = velocidad + 1;
             }
             cout << "\nLa velocidad a la que se mando el paquete fue de " << velocidad << " segundos." << endl;
+            insertar(par,par.first);
         }
         else if(rnum == 3){
             cout << "\nEl paquete fue enviado por fibra optica el cual es: [" << par.first << "]-[" << par.second << "] con bastante ruido" << endl;
@@ -197,6 +238,7 @@ void canal(const pair<int, bitset<8>>& par, int num){
                 velocidad = velocidad + 1;
             }
             cout << "\nLa velocidad a la que se mando el paquete fue de " << velocidad << " segundos." << endl;
+            insertar(par,par.first);
         }
         break;
 
@@ -207,6 +249,7 @@ void canal(const pair<int, bitset<8>>& par, int num){
                 velocidad = velocidad + 1;
             }
             cout << "\nLa velocidad a la que se mando el paquete fue de " << velocidad << " segundos." << endl;
+            insertar(par,par.first);
         }
         else if(rnum == 2){
             cout << "\nEl paquete fue enviado por wifi el cual es: [" << par.first << "]-[" << par.second << "] con poco ruido" << endl;
@@ -214,6 +257,7 @@ void canal(const pair<int, bitset<8>>& par, int num){
                 velocidad = velocidad + 1;
             }
             cout << "\nLa velocidad a la que se mando el paquete fue de " << velocidad << " segundos." << endl;
+            insertar(par,par.first);
         }
         else if(rnum == 3){
             cout << "\nEl paquete fue enviado por wifi el cual es: [" << par.first << "]-[" << par.second << "] con bastante ruido" << endl;
@@ -221,6 +265,7 @@ void canal(const pair<int, bitset<8>>& par, int num){
                 velocidad = velocidad + 1;
             }
             cout << "\nLa velocidad a la que se mando el paquete fue de " << velocidad << " segundos." << endl;
+            insertar(par,par.first);
         }break;
     }
 
@@ -253,3 +298,42 @@ void receptor(string cadena){
     cout << descifrado << endl;
 }
 
+// para la estructura
+int vacia() {
+    if (raiz == NULL)
+        return 1;
+    else
+        return 0;
+}
+
+void insertar(const pair<int, bitset<8>>& par, int cabeza) {
+    struct datos *nuevo = new datos;
+    nuevo->par = par;
+    nuevo->cabeza = cabeza;
+    nuevo->sig = NULL;
+    if (vacia()) {
+        raiz = nuevo;
+        fondo = nuevo;
+    } else {
+        fondo->sig = nuevo;
+        fondo = nuevo;
+    }
+}
+
+void extraer(pair<int, bitset<8>>& par, int& cabeza) {
+    if (!vacia()) {
+        par = raiz->par;
+        cabeza = raiz->cabeza;
+        struct datos *bor = raiz;
+        if (raiz == fondo) {
+            raiz = NULL;
+            fondo = NULL;
+        } else {
+            raiz = raiz->sig;
+        }
+        delete bor;
+    } else {
+        par = make_pair(-1, bitset<8>());
+        cabeza = -1;
+    }
+}
