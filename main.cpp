@@ -8,8 +8,10 @@
 #include <typeinfo>
 #include <bitset>
 #include <utility>
+#include <cmath>
 
 using namespace std;
+int entriopia[200];
 
 // estructura para enviar los archivos
 struct datos
@@ -25,7 +27,7 @@ struct datos *fondo = NULL;
 // prototipos para el diagrama
 void fuente(string cadena);
 void trasnmisor(string cadena);
-void canal(const pair<int, bitset<8>> &par, int rnum);
+void canal(const pair<int, bitset<8>> &par, int num, int rnum);
 void receptor(int tam);
 void destino(string cadena);
 
@@ -76,18 +78,36 @@ void trasnmisor(string cadena)
     int num = rand() % 6 + 1;
     
     for (int x=0;x<tam;x++) {
+        int rnum = rand() % 2 + 1;
+        entriopia[x] = rnum;
         bitset<8> binario(letras[x]);
         pares[x] = make_pair(x, binario);
-        canal(pares[x], num);
+        canal(pares[x], num, rnum);
     }
 
+    int umbral[] = {2};
+    int tam_entriopia = sizeof(entriopia)/sizeof(entriopia[0]);
+    int tam_umbral = sizeof(umbral)/sizeof(umbral[0]);
+    double valor_entriopia = 0.0;
+    double probabilidad = 1.0/tam_entriopia;
+
+    for(int i=0;i<tam_entriopia;i++){
+        for(int j=0;j<tam_umbral;j++){
+            if(entriopia[i]==umbral[j]){
+                valor_entriopia -= probabilidad * log2(probabilidad);
+            }
+            else{
+                valor_entriopia -= 0 * log2(probabilidad);
+            }
+        }
+    }
+    cout << "\nLa entriopia de los ruidos es: " << valor_entriopia << endl;
     receptor(tam);
 }
 
-void canal(const pair<int, bitset<8>> &par, int num)
+void canal(const pair<int, bitset<8>> &par, int num, int rnum)
 {
     srand(time(NULL));
-    int rnum = rand() % 3 + 1;
     int velocidad = 0;
 
     switch (num)
@@ -108,16 +128,6 @@ void canal(const pair<int, bitset<8>> &par, int num)
         {
             cout << "\nEl paquete fue enviado por UTP el cual es: [" << par.first << "]-[" << par.second << "] con poco ruido" << endl;
             for (int i=0;i<20;i++)
-            {
-                velocidad = velocidad + 1;
-            }
-            cout << "\nLa velocidad a la que se mando el paquete fue de " << velocidad << " segundos." << endl;
-            insertar(par, par.first);
-        }
-        else if (rnum == 3)
-        {
-            cout << "\nEl paquete fue enviado por UTP el cual es: [" << par.first << "]-[" << par.second << "] con bastante ruido" << endl;
-            for (int i=0;i<30;i++)
             {
                 velocidad = velocidad + 1;
             }
@@ -147,16 +157,6 @@ void canal(const pair<int, bitset<8>> &par, int num)
             cout << "\nLa velocidad a la que se mando el paquete fue de " << velocidad << " segundos." << endl;
             insertar(par, par.first);
         }
-        else if (rnum == 3)
-        {
-            cout << "\nEl paquete fue enviado por FTP el cual es: [" << par.first << "]-[" << par.second << "] con bastante ruido" << endl;
-            for (int i=0;i<30;i++)
-            {
-                velocidad = velocidad + 1;
-            }
-            cout << "\nLa velocidad a la que se mando el paquete fue de " << velocidad << " segundos." << endl;
-            insertar(par, par.first);
-        }
         break;
 
     case 3:
@@ -174,16 +174,6 @@ void canal(const pair<int, bitset<8>> &par, int num)
         {
             cout << "\nEl paquete fue enviado por STP el cual es: [" << par.first << "]-[" << par.second << "] con poco ruido" << endl;
             for (int i=0;i<20;i++)
-            {
-                velocidad = velocidad + 1;
-            }
-            cout << "\nLa velocidad a la que se mando el paquete fue de " << velocidad << " segundos." << endl;
-            insertar(par, par.first);
-        }
-        else if (rnum == 3)
-        {
-            cout << "\nEl paquete fue enviado por STP el cual es: [" << par.first << "]-[" << par.second << "] con bastante ruido" << endl;
-            for (int i=0;i<30;i++)
             {
                 velocidad = velocidad + 1;
             }
@@ -213,16 +203,6 @@ void canal(const pair<int, bitset<8>> &par, int num)
             cout << "\nLa velocidad a la que se mando el paquete fue de " << velocidad << " segundos." << endl;
             insertar(par, par.first);
         }
-        else if (rnum == 3)
-        {
-            cout << "\nEl paquete fue enviado por cable coaxial el cual es: [" << par.first << "]-[" << par.second << "] con bastante ruido" << endl;
-            for (int i=0;i<30;i++)
-            {
-                velocidad = velocidad + 1;
-            }
-            cout << "\nLa velocidad a la que se mando el paquete fue de " << velocidad << " segundos." << endl;
-            insertar(par, par.first);
-        }
         break;
 
     case 5:
@@ -246,16 +226,6 @@ void canal(const pair<int, bitset<8>> &par, int num)
             cout << "\nLa velocidad a la que se mando el paquete fue de " << velocidad << " segundos." << endl;
             insertar(par, par.first);
         }
-        else if (rnum == 3)
-        {
-            cout << "\nEl paquete fue enviado por fibra optica el cual es: [" << par.first << "]-[" << par.second << "] con bastante ruido" << endl;
-            for (int i=0;i<30;i++)
-            {
-                velocidad = velocidad + 1;
-            }
-            cout << "\nLa velocidad a la que se mando el paquete fue de " << velocidad << " segundos." << endl;
-            insertar(par, par.first);
-        }
         break;
 
     case 6:
@@ -273,16 +243,6 @@ void canal(const pair<int, bitset<8>> &par, int num)
         {
             cout << "\nEl paquete fue enviado por wifi el cual es: [" << par.first << "]-[" << par.second << "] con poco ruido" << endl;
             for (int i=0;i<20;i++)
-            {
-                velocidad = velocidad + 1;
-            }
-            cout << "\nLa velocidad a la que se mando el paquete fue de " << velocidad << " segundos." << endl;
-            insertar(par, par.first);
-        }
-        else if (rnum == 3)
-        {
-            cout << "\nEl paquete fue enviado por wifi el cual es: [" << par.first << "]-[" << par.second << "] con bastante ruido" << endl;
-            for (int i=0;i<30;i++)
             {
                 velocidad = velocidad + 1;
             }
