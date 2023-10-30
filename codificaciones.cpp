@@ -84,6 +84,8 @@ void extraerA(pair<int, string> &par, int &cabeza);
 void generarCodigosHuffman(huffman* raiz, string codigo, map<int, string>& codigosHuffman);
 huffman* construirArbolHuffman(int numeros[], map<int, int>& frecuencias, int n);
 string codificacion_huffman(int numeros[], int n, map<int, string>& codigosHuffman);
+void decodificacion_huffman(string textoCodificado, huffman* raiz, int arregloDecodificado[], int& tamanoDecodificado);
+void receptor_huffman(int tam, huffman* raiz);
 
 //prototipos para la codificacion shannon-fano
 void ShannonFano(vector<shannon_fano>& puntero, int inicio, int final, const string& hoja);
@@ -132,6 +134,10 @@ void trasnmisor(string cadena)
     pair<int, bitset<8>> pares[tam];
     int numeroPaquetes = 4;
     pair<int, string> paresA[numeroPaquetes];
+    bool envios[tam];
+    bool envio;
+    float probPerdida;
+    float prob;
 
     //codificacion huffman
     map<int, int> frecuencias;
@@ -184,12 +190,13 @@ void trasnmisor(string cadena)
     }
 
     //eleccion de codificacion
-    //int ele = rand() % 4 + 1;
-    int ele = 1;
-
+    int ele = rand() % 4 + 1;
+    int canal;
+    cout << "-------------------------------------------------------------------------------------" << endl;
     switch(ele){
         case 1:
         cout << "HUFFMAN" << endl;
+        srand(static_cast<unsigned>(time(0)));
 
         //conversion de binarios a ascii
         for (int i = 0; i < tam; i++) {
@@ -205,7 +212,46 @@ void trasnmisor(string cadena)
         generarCodigosHuffman(raiz, "", codigosHuffman);
 
         codificado = codificacion_huffman(asciiB,tam,codigosHuffman);
-        cout << "Codificacion del arreglo original: " << codificado << "\n";
+        canal = 1;
+
+        for (int x=0;x<1;x++) {
+        int rnum = rand() % 2 + 1;
+        entriopia[x] = rnum;
+        paresA[x] = make_pair(x,codificado);
+        if(canal == 1){
+            probPerdida = 0.5;
+            prob = static_cast<float>(rand()) / RAND_MAX;
+            if(prob<probPerdida){
+                cout << "el mensaje fue enviado con mucho ruido" << endl;
+                canalA(paresA[x], num, rnum);
+                envio = true;
+            }
+            else if(prob>=probPerdida){
+                envio = false;
+                canal = 2;
+            }
+        }
+        if(canal==2){
+            probPerdida = 0.85;
+            prob = static_cast<float>(rand()) / RAND_MAX;
+            if(prob<probPerdida){
+                cout << "el mensaje fue enviado con poco ruido" << endl;
+                canalA(paresA[x], num, rnum);
+                envio = true;
+            }
+            else if(prob>=probPerdida){
+                envio = false;
+                canal = 3;
+            }
+        }
+        if(canal == 3){
+            cout << "el mensaje fue enviado sin ruido" << endl;
+            canalA(paresA[x],num,rnum);
+        }
+        }
+    
+        receptor_huffman(tam,raiz);
+
         break;
         
         case 2:
@@ -233,25 +279,97 @@ void trasnmisor(string cadena)
 
         codificado = codificacion_shannon_fano(hojas, asciiB, tam);
 
+        canal = 1;
+
         for (int x=0;x<1;x++) {
         int rnum = rand() % 2 + 1;
         entriopia[x] = rnum;
         paresA[x] = make_pair(x,codificado);
-        canalA(paresA[x], num, rnum);
+        if(canal == 1){
+            probPerdida = 0.5;
+            prob = static_cast<float>(rand()) / RAND_MAX;
+            if(prob<probPerdida){
+                cout << "el mensaje fue enviado con mucho ruido" << endl;
+                canalA(paresA[x], num, rnum);
+                envio = true;
+            }
+            else if(prob>=probPerdida){
+                envio = false;
+                canal = 2;
+            }
         }
+        if(canal==2){
+            probPerdida = 0.85;
+            prob = static_cast<float>(rand()) / RAND_MAX;
+            if(prob<probPerdida){
+                cout << "el mensaje fue enviado con poco ruido" << endl;
+                canalA(paresA[x], num, rnum);
+                envio = true;
+            }
+            else if(prob>=probPerdida){
+                envio = false;
+                canal = 3;
+            }
+        }
+        if(canal == 3){
+            cout << "el mensaje fue enviado sin ruido" << endl;
+            canalA(paresA[x],num,rnum);
+        }
+        }
+
+        receptor_shannon_fano(hojas,tam);
 
         break;
 
         case 3:
         cout << "CODIFICACION CESAR - INVENTADA" << endl;
         datosCifrados_cesar = codificacionCesar(cifrador_binario,tam_cifrado,tam,binarios);
-        
+
+        canal = 1;
+
         for (int x=0;x<tam;x++) {
-        int rnum = rand() % 2 + 1;
-        entriopia[x] = rnum;
-        pares[x] = make_pair(x,datosCifrados_cesar[x]);
-        canalB(pares[x], num, rnum);
+            int rnum = rand() % 2 + 1;
+            entriopia[x] = rnum;
+            pares[x] = make_pair(x,datosCifrados_cesar[x]);
+            if(canal == 1){
+                probPerdida = 0.5;
+                prob = static_cast<float>(rand()) / RAND_MAX;
+                if(prob<probPerdida){
+                    cout << "paquete enviado con mucho ruido" << endl;
+                    canalB(pares[x], num, rnum);
+                    envios[x] = true;
+                }
+            else if(prob>=probPerdida){
+                envios[x] = false;
+            }
         }
+        canal = 2;
+        if(canal == 2){
+            if(envios[x] == false){
+                probPerdida = 0.85;
+                prob = static_cast<float>(rand()) / RAND_MAX;
+                if(prob<probPerdida){
+                    cout << "paquete enviado con poco ruido" << endl;
+                    canalB(pares[x], num, rnum);
+                    envios[x] = true;
+                }
+                else if(prob>=probPerdida){
+                    envios[x] = false;
+                }
+            }
+        }
+        canal = 3;
+        if(canal == 3){
+            if(envios[x] == false){
+                cout << "el paquete fue enviado con nada de ruido" << endl;
+                canalB(pares[x], num, rnum);
+            }
+        }
+        }
+
+
+        receptor_cesar(cifrador_binario,tam_cifrado,tam);
+
         break;
 
         case 4:
@@ -265,12 +383,49 @@ void trasnmisor(string cadena)
         }
         datosCifrados_dobleLinea = codificacionaDobleLinea(mitadinicio,mitadfinal,medio,tam,binarios);
 
+        canal = 1;
+
         for (int x=0;x<tam;x++) {
-        int rnum = rand() % 2 + 1;
-        entriopia[x] = rnum;
-        pares[x] = make_pair(x,datosCifrados_dobleLinea[x]);
-        canalB(pares[x], num, rnum);
+            int rnum = rand() % 2 + 1;
+            entriopia[x] = rnum;
+            pares[x] = make_pair(x,datosCifrados_dobleLinea[x]);
+            if(canal == 1){
+                probPerdida = 0.5;
+                prob = static_cast<float>(rand()) / RAND_MAX;
+                if(prob<probPerdida){
+                    cout << "paquete enviado con mucho ruido" << endl;
+                    canalB(pares[x], num, rnum);
+                    envios[x] = true;
+                }
+            else if(prob>=probPerdida){
+                envios[x] = false;
+            }
         }
+        canal = 2;
+        if(canal == 2){
+            if(envios[x] == false){
+                probPerdida = 0.85;
+                prob = static_cast<float>(rand()) / RAND_MAX;
+                if(prob<probPerdida){
+                    cout << "paquete enviado con poco ruido" << endl;
+                    canalB(pares[x], num, rnum);
+                    envios[x] = true;
+                }
+                else if(prob>=probPerdida){
+                    envios[x] = false;
+                }
+            }
+        }
+        canal = 3;
+        if(canal == 3){
+            if(envios[x] == false){
+                cout << "el paquete fue enviado con nada de ruido" << endl;
+                canalB(pares[x], num, rnum);
+            }
+        }
+        }
+
+        receptor_doble_linea(mitadinicio,mitadfinal,medio,tam);
 
         break;
 
@@ -295,10 +450,10 @@ void trasnmisor(string cadena)
     }
     cout << "\nLa entriopia de los ruidos es: " << valor_entriopia << endl;
     //receptor(tam);
-    if(ele == 1){}
-    if(ele == 2){receptor_shannon_fano(hojas,tam);}
-    if(ele == 3){receptor_cesar(cifrador_binario,tam_cifrado,tam);}
-    if(ele == 4){receptor_doble_linea(mitadinicio,mitadfinal,medio,tam);}
+    //if(ele == 1){receptor_huffman(tam,raiz);}
+    //if(ele == 2){receptor_shannon_fano(hojas,tam);}
+    //if(ele == 3){receptor_cesar(cifrador_binario,tam_cifrado,tam);}
+    //if(ele == 4){receptor_doble_linea(mitadinicio,mitadfinal,medio,tam);}
 }
 
 //canal para codificacion huffman y shannon fano
@@ -320,6 +475,7 @@ void canalA(const pair<int, string> &par, int num, int rnum)
             }
             cout << "\nLa velocidad a la que se mando el paquete fue de " << velocidad << " segundos." << endl;
             insertarA(par, par.first);
+            cout << "-------------------------------------------------------------------------------------" << endl;
         }
         else if (rnum == 2)
         {
@@ -330,6 +486,7 @@ void canalA(const pair<int, string> &par, int num, int rnum)
             }
             cout << "\nLa velocidad a la que se mando el paquete fue de " << velocidad << " segundos." << endl;
             insertarA(par, par.first);
+            cout << "-------------------------------------------------------------------------------------" << endl;
         }
         break;
 
@@ -343,6 +500,7 @@ void canalA(const pair<int, string> &par, int num, int rnum)
             }
             cout << "\nLa velocidad a la que se mando el paquete fue de " << velocidad << " segundos." << endl;
             insertarA(par, par.first);
+            cout << "-------------------------------------------------------------------------------------" << endl;
         }
         else if (rnum == 2)
         {
@@ -353,6 +511,7 @@ void canalA(const pair<int, string> &par, int num, int rnum)
             }
             cout << "\nLa velocidad a la que se mando el paquete fue de " << velocidad << " segundos." << endl;
             insertarA(par, par.first);
+            cout << "-------------------------------------------------------------------------------------" << endl;
         }
         break;
 
@@ -366,6 +525,7 @@ void canalA(const pair<int, string> &par, int num, int rnum)
             }
             cout << "\nLa velocidad a la que se mando el paquete fue de " << velocidad << " segundos." << endl;
             insertarA(par, par.first);
+            cout << "-------------------------------------------------------------------------------------" << endl;
         }
         else if (rnum == 2)
         {
@@ -376,6 +536,7 @@ void canalA(const pair<int, string> &par, int num, int rnum)
             }
             cout << "\nLa velocidad a la que se mando el paquete fue de " << velocidad << " segundos." << endl;
             insertarA(par, par.first);
+            cout << "-------------------------------------------------------------------------------------" << endl;
         }
         break;
 
@@ -389,6 +550,7 @@ void canalA(const pair<int, string> &par, int num, int rnum)
             }
             cout << "\nLa velocidad a la que se mando el paquete fue de " << velocidad << " segundos." << endl;
             insertarA(par, par.first);
+            cout << "-------------------------------------------------------------------------------------" << endl;
         }
         else if (rnum == 2)
         {
@@ -399,6 +561,7 @@ void canalA(const pair<int, string> &par, int num, int rnum)
             }
             cout << "\nLa velocidad a la que se mando el paquete fue de " << velocidad << " segundos." << endl;
             insertarA(par, par.first);
+            cout << "-------------------------------------------------------------------------------------" << endl;
         }
         break;
 
@@ -412,6 +575,7 @@ void canalA(const pair<int, string> &par, int num, int rnum)
             }
             cout << "\nLa velocidad a la que se mando el paquete fue de " << velocidad << " segundos." << endl;
             insertarA(par, par.first);
+            cout << "-------------------------------------------------------------------------------------" << endl;
         }
         else if (rnum == 2)
         {
@@ -422,6 +586,7 @@ void canalA(const pair<int, string> &par, int num, int rnum)
             }
             cout << "\nLa velocidad a la que se mando el paquete fue de " << velocidad << " segundos." << endl;
             insertarA(par, par.first);
+            cout << "-------------------------------------------------------------------------------------" << endl;
         }
         break;
 
@@ -435,6 +600,7 @@ void canalA(const pair<int, string> &par, int num, int rnum)
             }
             cout << "\nLa velocidad a la que se mando el paquete fue de " << velocidad << " segundos." << endl;
             insertarA(par, par.first);
+            cout << "-------------------------------------------------------------------------------------" << endl;
         }
         else if (rnum == 2)
         {
@@ -445,6 +611,7 @@ void canalA(const pair<int, string> &par, int num, int rnum)
             }
             cout << "\nLa velocidad a la que se mando el paquete fue de " << velocidad << " segundos." << endl;
             insertarA(par, par.first);
+            cout << "-------------------------------------------------------------------------------------" << endl;
         }
         break;
     }
@@ -469,6 +636,7 @@ void canalB(const pair<int, bitset<8>> &par, int num, int rnum)
             }
             cout << "\nLa velocidad a la que se mando el paquete fue de " << velocidad << " segundos." << endl;
             insertarB(par, par.first);
+            cout << "-------------------------------------------------------------------------------------" << endl;
         }
         else if (rnum == 2)
         {
@@ -479,6 +647,7 @@ void canalB(const pair<int, bitset<8>> &par, int num, int rnum)
             }
             cout << "\nLa velocidad a la que se mando el paquete fue de " << velocidad << " segundos." << endl;
             insertarB(par, par.first);
+            cout << "-------------------------------------------------------------------------------------" << endl;
         }
         break;
 
@@ -492,6 +661,7 @@ void canalB(const pair<int, bitset<8>> &par, int num, int rnum)
             }
             cout << "\nLa velocidad a la que se mando el paquete fue de " << velocidad << " segundos." << endl;
             insertarB(par, par.first);
+            cout << "-------------------------------------------------------------------------------------" << endl;
         }
         else if (rnum == 2)
         {
@@ -502,6 +672,7 @@ void canalB(const pair<int, bitset<8>> &par, int num, int rnum)
             }
             cout << "\nLa velocidad a la que se mando el paquete fue de " << velocidad << " segundos." << endl;
             insertarB(par, par.first);
+            cout << "-------------------------------------------------------------------------------------" << endl;
         }
         break;
 
@@ -515,6 +686,7 @@ void canalB(const pair<int, bitset<8>> &par, int num, int rnum)
             }
             cout << "\nLa velocidad a la que se mando el paquete fue de " << velocidad << " segundos." << endl;
             insertarB(par, par.first);
+            cout << "-------------------------------------------------------------------------------------" << endl;
         }
         else if (rnum == 2)
         {
@@ -525,6 +697,7 @@ void canalB(const pair<int, bitset<8>> &par, int num, int rnum)
             }
             cout << "\nLa velocidad a la que se mando el paquete fue de " << velocidad << " segundos." << endl;
             insertarB(par, par.first);
+            cout << "-------------------------------------------------------------------------------------" << endl;
         }
         break;
 
@@ -538,6 +711,7 @@ void canalB(const pair<int, bitset<8>> &par, int num, int rnum)
             }
             cout << "\nLa velocidad a la que se mando el paquete fue de " << velocidad << " segundos." << endl;
             insertarB(par, par.first);
+            cout << "-------------------------------------------------------------------------------------" << endl;
         }
         else if (rnum == 2)
         {
@@ -548,6 +722,7 @@ void canalB(const pair<int, bitset<8>> &par, int num, int rnum)
             }
             cout << "\nLa velocidad a la que se mando el paquete fue de " << velocidad << " segundos." << endl;
             insertarB(par, par.first);
+            cout << "-------------------------------------------------------------------------------------" << endl;
         }
         break;
 
@@ -561,6 +736,7 @@ void canalB(const pair<int, bitset<8>> &par, int num, int rnum)
             }
             cout << "\nLa velocidad a la que se mando el paquete fue de " << velocidad << " segundos." << endl;
             insertarB(par, par.first);
+            cout << "-------------------------------------------------------------------------------------" << endl;
         }
         else if (rnum == 2)
         {
@@ -571,6 +747,7 @@ void canalB(const pair<int, bitset<8>> &par, int num, int rnum)
             }
             cout << "\nLa velocidad a la que se mando el paquete fue de " << velocidad << " segundos." << endl;
             insertarB(par, par.first);
+            cout << "-------------------------------------------------------------------------------------" << endl;
         }
         break;
 
@@ -584,6 +761,7 @@ void canalB(const pair<int, bitset<8>> &par, int num, int rnum)
             }
             cout << "\nLa velocidad a la que se mando el paquete fue de " << velocidad << " segundos." << endl;
             insertarB(par, par.first);
+            cout << "-------------------------------------------------------------------------------------" << endl;
         }
         else if (rnum == 2)
         {
@@ -594,6 +772,7 @@ void canalB(const pair<int, bitset<8>> &par, int num, int rnum)
             }
             cout << "\nLa velocidad a la que se mando el paquete fue de " << velocidad << " segundos." << endl;
             insertarB(par, par.first);
+            cout << "-------------------------------------------------------------------------------------" << endl;
         }
         break;
     }
@@ -751,6 +930,76 @@ string codificacion_huffman(int numeros[], int n, map<int, string>& codigosHuffm
         textoCodificado += codigosHuffman[numeros[i]];
     }
     return textoCodificado;
+}
+
+// Funcion para decodificar una secuencia codificada
+void decodificacion_huffman(string textoCodificado, huffman* raiz, int arregloDecodificado[], int& tamanoDecodificado) {
+    huffman* nodoActual = raiz;
+    int indiceActual = 0;
+
+    for (char bit : textoCodificado) {
+        if (bit == '0') {
+            nodoActual = nodoActual->izquierda;
+        } else if (bit == '1') {
+            nodoActual = nodoActual->derecha;
+        }
+
+        if (nodoActual->izquierda == nullptr && nodoActual->derecha == nullptr) {
+            // Llegamos a una hoja, registra el valor y reinicia el puntero
+            arregloDecodificado[indiceActual] = nodoActual->numero;
+            indiceActual++;
+            nodoActual = raiz;
+        }
+    }
+
+    tamanoDecodificado = indiceActual; // Tamano del arreglo decodificado
+}
+
+void receptor_huffman(int tam, huffman* raiz){
+        char cifrador[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', ' ', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z','?','=','$'};
+
+    char letras_convertidas[50];
+    char letras[50];
+    string palabra;
+    string paquete;
+    pair<int, string> paresExtraidos[tam];
+
+    int x = 0;
+    while (!vaciaA())
+    {
+        pair<int, string> extraccion_par;
+        int extraccion_cabeza;
+        extraerA(extraccion_par, extraccion_cabeza);
+        paquete = extraccion_par.second;
+        x++;
+    }
+    int asciidecodificado[tam];
+    int tamanoDecodificado;
+    decodificacion_huffman(paquete,raiz,asciidecodificado,tamanoDecodificado);
+
+    for(int i=0;i<tam;i++){
+        letras_convertidas[i] = static_cast<char>(asciidecodificado[i]);
+    }
+
+    string cadena(letras_convertidas);
+
+
+    for (int i=0;i<tam;i++)
+    {
+        for (int j=0;j<sizeof(cifrador)/sizeof(cifrador[0]);j++)
+        {
+            if (cifrador[j] == cadena[i]) {letras[i] = cifrador[j - 3];}
+        }
+    }
+
+    for (int k = 0; k < tam; k++)
+    {
+        palabra.push_back(letras[k]);
+    }
+
+    string descifrado = palabra;
+    destino(descifrado);
+
 }
 
 //codificacion shannon_fano
