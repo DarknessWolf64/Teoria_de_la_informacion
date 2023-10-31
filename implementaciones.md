@@ -38,7 +38,9 @@ si en el canal 1 no se envia el paquete en ese arreglo en su indece se agrega un
 si en el canal 2 se checan si el paquete fue enviado por medio del arreglo de booleanos si en el arreglo marca falso se toma el indice y se envia el paquete con ese numero, sino se envia se pasa al canal 3 el cual hace los mismo.
 
 para saber si pasan por el canal se tiene que tomar en cuenta la probabilidad de perdida de paquete que se hizo por cada canal, en el 1 es de 0.5, del 2 es de 0.85 y del ultimo no tiene esa afectacion. para ver si se pierde o no genera una probabilidad aleatoria entre el 0 y el 1 si la probabilidad es menor a la de ese canal pasa sino pasa a otro canal hasta que se envia.
+
 --------------------------------------------------------------------------------------------------------------------------
+
 Modificaciones
 
 Algunas modificaciones que se hicieron fueron crear otro canal especializado para huffman y shannon-fano, y crear un receptor para cada codificacion.
