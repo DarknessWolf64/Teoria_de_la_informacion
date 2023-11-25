@@ -77,7 +77,7 @@ void canal(const pair<int, string> &par, int num, int rnum, int canal);
 void receptor(const vector<shannon_fano>& hojas,int tam);
 void destino(string cadena);
 void pasarDatos();
-void ordenarDatos();
+void ordenarPorCabeza(struct datos* &raiz);
 
 //prototipos para la codificacion shannon-fano
 void ShannonFano(vector<shannon_fano>& puntero, int inicio, int final, const string& hoja = "");
@@ -433,8 +433,7 @@ void receptor(const vector<shannon_fano>& hojas,int tam)
 
     pasarDatos();
     cout << endl;
-
-    ordenarDatos();
+    ordenarPorCabeza(raiz);
 
     while (!vacia(4))
     {
@@ -729,39 +728,37 @@ void pasarDatos() {
     }
 }
 
-void ordenarDatos() {
-    if (raiz == NULL) {
-        cout << "La estructura está vacía, no hay datos para ordenar." << endl;
-        return;
+void ordenarPorCabeza(struct datos* &raiz) {
+    vector<pair<int, string>> lista;
+
+    // Convertir la estructura a un vector
+    struct datos* temp = raiz;
+    while (temp != NULL) {
+        lista.push_back(temp->par);
+        temp = temp->sig;
     }
 
-    struct datos *actual = raiz, *temp;
-    
-    while (actual->sig != NULL) {
-        struct datos *minimo = actual;
-        struct datos *siguiente = actual->sig;
+    // Ordenar el vector por el valor de cabeza
+    sort(lista.begin(), lista.end(), [](const pair<int, string>& a, const pair<int, string>& b) {
+        return a.first < b.first;
+    });
 
-        while (siguiente != NULL) {
-            // Comparar por el valor de cabeza
-            if (siguiente->cabeza < minimo->cabeza) {
-                minimo = siguiente;
+    // Reconstruir la estructura ordenada
+    raiz = NULL;
+    for (const auto& elemento : lista) {
+        struct datos* nuevo = new datos;
+        nuevo->par = elemento;
+        nuevo->sig = NULL;
+        if (raiz == NULL) {
+            raiz = nuevo;
+        } else {
+            struct datos* temp = raiz;
+            while (temp->sig != NULL) {
+                temp = temp->sig;
             }
-
-            siguiente = siguiente->sig;
+            temp->sig = nuevo;
         }
-
-        // Intercambiar los datos si se encontró un mínimo
-        if (minimo != actual) {
-            // Intercambiar solo el valor de cabeza
-            int tempCabeza = actual->cabeza;
-            actual->cabeza = minimo->cabeza;
-            minimo->cabeza = tempCabeza;
-        }
-
-        actual = actual->sig;
     }
-
-    cout << "Datos ordenados por el valor de cabeza de menor a mayor." << endl;
 }
 
 //codificacion shannon_fano
