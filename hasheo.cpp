@@ -196,7 +196,7 @@ void trasnmisor(string cadena)
         pares[x] = make_pair(x, hashes[x]);
         num_canal = 1;
         if(num_canal == 1){
-            probPerdida1 = 0.1;
+            probPerdida1 = 0.25;
             prob1 = static_cast<float>(rand()) / RAND_MAX;
             if(prob1<probPerdida1){
                 cout << "-------------------------------------------------------------------------------------" << endl;
